@@ -1,0 +1,12 @@
+piVersion: triggers.tekton.dev/v1alpha1
+kind: EventListener
+metadata:
+  name: my-listener
+spec:
+  serviceAccountName: service-tekton-triggers-sa  # ✅ Service Account is defined here
+  triggers:
+    - name: my-trigger
+      bindings:
+        - ref: my-triggerbinding
+      template:
+        ref: my-triggertemplate

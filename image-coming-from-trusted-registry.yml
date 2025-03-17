@@ -1,0 +1,25 @@
+apiVersion: kyverno.io/v1
+kind: ClusterPolicy
+metadata:
+  name: verify-image-provenance
+spec:
+  validationFailureAction: Enforce
+  background: false
+  rules:
+    - name: check-image-registry
+      match:
+        any:
+          - resources:
+              kinds:
+                - TaskRun
+                - PipelineRun
+      validate:
+        message: "Only images from trusted registries are allowed."
+        deny:
+          conditions:
+            all:
+              - key: "{{ request.object.spec.taskSpec.steps[*].image }}"
+                operator: AnyNotIn
+                value:
+                  - "gcr.io/trusted-repo/*"
+                  - "docker.io/mytrustedorg/*"

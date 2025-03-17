@@ -1,0 +1,11 @@
+apiVersion: tekton.dev/v1beta1
+kind: TaskRun
+metadata:
+  name: test-taskrun-latest
+spec:
+  taskSpec:
+    steps:
+      - name: example-step
+        image: "alpine:latest"
+        script: |
+          echo "This step uses latest tag"

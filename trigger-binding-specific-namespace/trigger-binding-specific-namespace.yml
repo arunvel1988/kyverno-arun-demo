@@ -1,0 +1,18 @@
+kind: ClusterPolicy
+metadata:
+  name: restrict-triggerbinding-namespace
+spec:
+  validationFailureAction: Enforce
+  background: true
+  rules:
+    - name: enforce-namespace
+      match:
+        any:
+          - resources:
+              kinds:
+                - TriggerBinding
+      validate:
+        message: "TriggerBindings can only be created in the 'tekton-pipelines' namespace."
+        cel:
+          expressions:
+            - expression: "request.namespace == 'tekton-pipelines'"

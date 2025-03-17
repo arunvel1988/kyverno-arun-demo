@@ -1,0 +1,70 @@
+### **Purpose of Chainsaw in Kyverno**  
+**Chainsaw** is a **Kyverno testing tool** designed to validate and automate policy enforcement. It helps developers and administrators test Kyverno policies **outside a live Kubernetes cluster** using a declarative YAML-based testing approach.  
+
+---
+
+### **Why Use Chainsaw?**
+- 🛠 **Automates Kyverno policy testing**  
+- 🚀 **Validates policies before deployment**  
+- 🏗 **Runs tests in a CI/CD pipeline**  
+- 🔍 **Ensures compliance & security policies work as expected**  
+
+---
+
+### **How Chainsaw Works**
+1. **Defines test cases** for Kyverno policies in a `.chainsaw` directory.  
+2. **Applies test resources** (like Pods, Deployments, etc.).  
+3. **Verifies expected outcomes** (pass/fail conditions).  
+4. **Runs tests locally** (without needing a live Kubernetes cluster).  
+
+---
+
+### **Example Usage**
+To test your **`require-signed-images-registry`** policy using Chainsaw, you would:  
+1. Install Chainsaw:  
+   ```sh
+   kubectl krew install chainsaw
+   ```
+2. Create a test directory:  
+   ```sh
+   mkdir -p .chainsaw/tests/signed-images
+   ```
+3. Add your test case:  
+   ```yaml
+   apiVersion: cli.kyverno.io/v1alpha1
+   kind: Test
+   metadata:
+     name: require-signed-images
+   policies:
+     - ../../policies/require-signed-images-registry.yaml
+   resources:
+     - ./resource.yaml
+   results:
+     - kind: Pod
+       policy: require-signed-images-registry
+       resources:
+         - unsigned-pod
+       result: fail
+       rule: check-signature
+     - kind: Pod
+       policy: require-signed-images-registry
+       resources:
+         - signed-pod
+       result: pass
+       rule: check-signature
+   ```
+4. Run the test:  
+   ```sh
+   chainsaw run .chainsaw/tests/signed-images
+   ```
+
+---
+
+### **When to Use Chainsaw?**
+- Before deploying Kyverno policies  
+- As part of a **CI/CD pipeline** to enforce policy compliance  
+- When debugging Kyverno policies without deploying them to a cluster  
+
+Chainsaw is a powerful tool for **validating Kyverno policies** in a **fast, repeatable, and automated** way. 🚀  
+
+Would you like a detailed setup guide for using Chainsaw with your specific Kyverno policies?

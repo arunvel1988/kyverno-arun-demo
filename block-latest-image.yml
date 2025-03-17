@@ -1,0 +1,22 @@
+apiVersion: kyverno.io/v1
+kind: ClusterPolicy
+metadata:
+  name: restrict-latest-tag
+spec:
+  validationFailureAction: Enforce
+  background: false
+  rules:
+    - name: deny-latest-tag
+      match:
+        any:
+          - resources:
+              kinds:
+                - TaskRun
+      validate:
+        message: "TaskRun must not use ':latest' image tags."
+        deny:
+          conditions:
+            all:
+              - key: "{{ request.object.spec.taskSpec.steps[*].image }}"
+                operator: AnyIn
+                value: ["*:latest"]

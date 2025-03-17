@@ -1,0 +1,207 @@
+Here are **more unique Kyverno policy ideas for Tekton**, focusing on **security, compliance, and best practices** that aren't covered yet:  
+
+---
+
+### 🔐 **Security Policies**  
+#### 1️⃣ **Restrict Use of HostPath Volumes in Tekton**  
+- **Why?** Prevent Tekton tasks from mounting hostPath volumes, which can lead to privilege escalation.  
+- **Policy Example:**  
+  ```yaml
+  apiVersion: kyverno.io/v1
+  kind: ClusterPolicy
+  metadata:
+    name: restrict-hostpath-tekton
+  spec:
+    validationFailureAction: Enforce
+    rules:
+      - name: block-hostpath
+        match:
+          resources:
+            kinds:
+              - TaskRun
+              - PipelineRun
+        validate:
+          message: "Tekton TaskRuns and PipelineRuns cannot use hostPath volumes."
+          pattern:
+            spec:
+              taskSpec:
+                steps:
+                  - volumeMounts:
+                      - X(hostPath): "null"
+  ```  
+
+---
+
+#### 2️⃣ **Restrict Use of Privileged Containers in Tekton Pipelines**  
+- **Why?** Prevent execution of privileged containers inside Tekton tasks.  
+- **Policy Example:**  
+  ```yaml
+  apiVersion: kyverno.io/v1
+  kind: ClusterPolicy
+  metadata:
+    name: restrict-privileged-tekton
+  spec:
+    validationFailureAction: Enforce
+    rules:
+      - name: no-privileged-containers
+        match:
+          resources:
+            kinds:
+              - TaskRun
+              - PipelineRun
+        validate:
+          message: "Privileged mode is not allowed for Tekton containers."
+          pattern:
+            spec:
+              taskSpec:
+                steps:
+                  - securityContext:
+                      privileged: "false"
+  ```
+
+---
+
+### 📜 **Compliance & Governance Policies**  
+#### 3️⃣ **Enforce Image Pull Policy as Always for Tekton Tasks**  
+- **Why?** Ensure images are always pulled from the registry to avoid using outdated cached versions.  
+- **Policy Example:**  
+  ```yaml
+  apiVersion: kyverno.io/v1
+  kind: ClusterPolicy
+  metadata:
+    name: enforce-image-pull-policy
+  spec:
+    validationFailureAction: Enforce
+    rules:
+      - name: require-image-pull-always
+        match:
+          resources:
+            kinds:
+              - TaskRun
+              - PipelineRun
+        validate:
+          message: "ImagePullPolicy must be 'Always' to ensure the latest image is used."
+          pattern:
+            spec:
+              taskSpec:
+                steps:
+                  - imagePullPolicy: "Always"
+  ```
+
+---
+
+#### 4️⃣ **Restrict Running Tekton Pipelines as Root Group**  
+- **Why?** Even if a container runs as a non-root user, it might still belong to the `root` group. This policy prevents that.  
+- **Policy Example:**  
+  ```yaml
+  apiVersion: kyverno.io/v1
+  kind: ClusterPolicy
+  metadata:
+    name: restrict-root-group-tekton
+  spec:
+    validationFailureAction: Enforce
+    rules:
+      - name: disallow-root-group
+        match:
+          resources:
+            kinds:
+              - TaskRun
+              - PipelineRun
+        validate:
+          message: "TaskRuns and PipelineRuns should not run as root group."
+          pattern:
+            spec:
+              taskSpec:
+                steps:
+                  - securityContext:
+                      runAsGroup: "!0"
+  ```
+
+---
+
+### ⚡ **Performance & Optimization Policies**  
+#### 5️⃣ **Enforce Minimum CPU and Memory Requests for Tekton Tasks**  
+- **Why?** Ensure that Tekton tasks always request a minimum amount of resources to prevent scheduling failures.  
+- **Policy Example:**  
+  ```yaml
+  apiVersion: kyverno.io/v1
+  kind: ClusterPolicy
+  metadata:
+    name: enforce-resource-requests
+  spec:
+    validationFailureAction: Enforce
+    rules:
+      - name: require-cpu-memory-requests
+        match:
+          resources:
+            kinds:
+              - TaskRun
+              - PipelineRun
+        validate:
+          message: "CPU and memory requests are required for Tekton tasks."
+          pattern:
+            spec:
+              taskSpec:
+                steps:
+                  - resources:
+                      requests:
+                        cpu: "?*"
+                        memory: "?*"
+  ```
+
+---
+
+### 🛠 **Tekton Best Practices Policies**  
+#### 6️⃣ **Require Tekton Tasks to Define Timeouts**  
+- **Why?** Avoid Tekton pipelines running indefinitely due to misconfigurations.  
+- **Policy Example:**  
+  ```yaml
+  apiVersion: kyverno.io/v1
+  kind: ClusterPolicy
+  metadata:
+    name: require-tekton-timeouts
+  spec:
+    validationFailureAction: Enforce
+    rules:
+      - name: enforce-task-timeout
+        match:
+          resources:
+            kinds:
+              - TaskRun
+              - PipelineRun
+        validate:
+          message: "Tekton TaskRuns and PipelineRuns must specify a timeout."
+          pattern:
+            spec:
+              timeout: "?*"
+  ```
+
+---
+
+#### 7️⃣ **Block Use of Deprecated Tekton API Versions**  
+- **Why?** Ensure Tekton workloads are always using supported API versions.  
+- **Policy Example:**  
+  ```yaml
+  apiVersion: kyverno.io/v1
+  kind: ClusterPolicy
+  metadata:
+    name: restrict-deprecated-tekton-api
+  spec:
+    validationFailureAction: Enforce
+    rules:
+      - name: disallow-old-api-versions
+        match:
+          resources:
+            kinds:
+              - TaskRun
+              - PipelineRun
+        validate:
+          message: "Old Tekton API versions are not allowed. Upgrade to supported versions."
+          pattern:
+            apiVersion: "!tekton.dev/v1beta1"
+  ```
+
+---
+
+### **Next Steps**  
+Would you like me to help integrate these policies into your **Tekton CI/CD environment**, or do you need modifications based on your **use case**? 🚀
